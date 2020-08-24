@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<title></title>
+	<meta charset="UTF-8">
+	<meta http-equiv="pragma" content="no-cache" />
+	<meta http-equiv="cache-control" content="no-cache" />
+	<meta http-equiv="expires" content="0" />    
+	<meta http-equiv="keywords" content="keyword1,keyword2,keyword3" />
+	<meta http-equiv="description" content="This is my page" />
+	<link href="/css/css.css" type="text/css" rel="stylesheet" />
+	<link rel="stylesheet" type="text/css" href="/js/ligerUI/skins/Aqua/css/ligerui-dialog.css"/>
+	<link href="/js/ligerUI/skins/ligerui-icons.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="/js/jquery-1.11.0.js"></script>
+    <script type="text/javascript" src="/js/jquery-migrate-1.2.1.js"></script>
+	<script src="/js/ligerUI/js/core/base.js" type="text/javascript"></script>
+	<script src="/js/ligerUI/js/plugins/ligerDrag.js" type="text/javascript"></script>
+	<script src="/js/ligerUI/js/plugins/ligerDialog.js" type="text/javascript"></script>
+<!--	<script src="../../js/ligerUI/js/plugins/ligerResizable.jss" type="text/javascript"></script>-->
+	<link href="/css/pager.css" type="text/css" rel="stylesheet" />
+		<script src="/js/layui/layui.js" ></script>
+		<link rel="stylesheet" href="/js/layui/css/layui.css">
+
+</head>
+<body>
+	<!-- 导航 -->
+	<table width="100%" border="0" cellpadding="0" cellspacing="0">
+	  <tr><td height="10"></td></tr>
+	  <tr>
+	    <td width="15" height="32"><img src="/images/main_locleft.gif" width="15" height="32"></td>
+		<td class="main_locbg font2"><img src="/images/pointer.gif">&nbsp;&nbsp;&nbsp;当前位置：用户管理 &gt; 用户查询</td>
+		<td width="15" height="32"><img src="/images/main_locright.gif" width="15" height="32"></td>
+	  </tr>
+	</table>
+	
+	<table width="100%" height="90%" border="0" cellpadding="5" cellspacing="0" class="main_tabbor">
+	  <!-- 查询区  -->
+	  <tr valign="top">
+	    <td height="30">
+		  <table width="100%" border="0" cellpadding="0" cellspacing="10" class="main_tab">
+		    <tr>
+			  <td class="fftd">
+			  	<form>
+				    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+					  <tr>
+					    <td class="font3">
+					    	用户名：<input type="text" name="username" id="name">
+					    	用户状态：<input type="text" name="status" id="sta">
+					    	<!-- <input type="button" value="搜索" id="sou"/>-->
+							<input type="button" id="sou"value="搜索"/>
+					    	<input id="delete" type="button" value="删除"/>
+					    </td>
+					  </tr>
+					</table>
+				</form>
+			  </td>
+			</tr>
+		  </table>
+		</td>
+	  </tr>
+
+
+
+	</table>
+
+	<table class="layui-table" lay-data="{ height:330, url:'/user/list.do', page:true, id:'idTest',limit:2,limits:[2,4]}" lay-filter="demo">
+		<thead>
+			<tr>
+				<th lay-data="{type:'checkbox', fixed: 'left'}"></th>
+				<th lay-data="{field:'id',  sort: true, fixed: true,hide:true}">ID</th>
+				<th lay-data="{field:'loginname'}">登录名</th>
+				<th lay-data="{field:'password', sort: true}">密码</th>
+				<th lay-data="{field:'username'}">用户名</th>
+				<th lay-data="{field:'status'}">状态</th>
+				<th lay-data="{field:'createDate', sort: true}">创建时间</th>
+				<th lay-data="{fixed: 'right', width:178, align:'center', toolbar: '#barDemo'}"></th>
+			</tr>
+		</thead>
+	</table>
+	<script type="text/html" id="barDemo">
+		<a class="layui-btn layui-btn-xs" lay-event="edit" >操作</a>
+		<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" id="del">删除</a>
+	</script>
+	<script>
+		var list=[]
+		layui.use('table', function(){
+			var table = layui.table;
+			//监听表格复选框选择
+			$("#sou").on('click',function () {
+				var username = $("#name").val();
+				var status = $("#sta").val();
+				table.reload('idTest', {
+					url:"/user/list.do",
+					where: { //设定异步数据接口的额外参数，任意设
+						username: username
+						,status: status
+					}
+				})
+			});
+
+
+			table.on('checkbox(demo)', function(obj){
+				list.push(obj.data.id)
+
+				$("#delete").click(function () {
+					$.ajax({
+						url:"/user/deleteAll.do"
+						,type:"post",
+						traditional: true,
+						data:{"ids":list},
+						success:function (res) {
+							if(res.code==0){
+								alert("批量删除成功")
+								location.href="/html/user/user.html"
+							}
+						}
+					})
+
+				})
+			});
+			//监听工具条
+			table.on('tool(demo)', function(obj){
+				var data = obj.data;
+				if(obj.event === 'detail'){
+					layer.msg('ID：'+ data.id + ' 的查看操作');
+				} else if(obj.event === 'del'){
+					layer.confirm('真的删除行么', function(index){
+						obj.del();
+						layer.close(index);
+					});
+				} else if(obj.event === 'edit'){
+					location.href="/html/user/showUpdateUser.html?id="+data.id +"&username="+data.username+"&password="+data.password+"&loginname="+data.loginname+"&status="+data.status
+				}
+			});
+
+/*			var $ = layui.$, active = {
+				getCheckData: function(){ //获取选中数据
+					var checkStatus = table.checkStatus('idTest')
+							,data = checkStatus.data;
+					layer.alert(JSON.stringify(data));
+				}
+				,getCheckLength: function(){ //获取选中数目
+					var checkStatus = table.checkStatus('idTest')
+							,data = checkStatus.data;
+					layer.msg('选中了：'+ data.length + ' 个');
+				}
+				,isAll: function(){ //验证是否全选
+					var checkStatus = table.checkStatus('idTest');
+					layer.msg(checkStatus.isAll ? '全选': '未全选')
+				}
+			};*/
+
+
+
+		})
+
+
+
+
+</script>
+</body>
+</html>

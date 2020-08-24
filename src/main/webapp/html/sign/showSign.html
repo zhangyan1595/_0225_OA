@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+    <title></title>
+    <meta charset="UTF-8">
+    <meta http-equiv="pragma" content="no-cache"/>
+    <meta http-equiv="cache-control" content="no-cache"/>
+    <meta http-equiv="expires" content="0"/>
+    <meta http-equiv="keywords" content="keyword1,keyword2,keyword3"/>
+    <meta http-equiv="description" content="This is my page"/>
+    <link href="/css/css.css" type="text/css" rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css"
+          href="/js/ligerUI/skins/Aqua/css/ligerui-dialog.css"/>
+    <link href="/js/ligerUI/skins/ligerui-icons.css" rel="stylesheet"
+          type="text/css"/>
+    <script type="text/javascript" src="/js/jquery-1.11.0.js"></script>
+
+    <!-- ECharts单文件引入 -->
+    <script type="text/javascript" src="/js/echarts.js"></script>
+    <link href="/css/pager.css" type="text/css" rel="stylesheet"/>
+    <script src="/js/getUrl.js"></script>
+    </head>
+    <body>
+        <div id="main"
+             style="height: 400px; border: 1px solid #ccc; padding: 10px;"></div>
+        <!--Step:2 引入echarts.js-->
+        <script type="text/javascript">
+            // Step:3 conifg ECharts's path, link to echarts.js from current page.
+            // Step:3 为模块加载器配置echarts的路径，从当前页面链接到echarts.js，定义所需图表路径
+            require.config({
+                paths: {
+                    echarts: '/js'
+                }
+            });
+            // Step:4 require echarts and use it in the callback.
+            // Step:4 动态加载echarts然后在回调函数中开始使用，注意保持按需加载结构定义图表路径
+            require(
+                [
+                    'echarts',
+                    'echarts/chart/bar',
+                    'echarts/chart/line'
+                ],
+                function (ec) {
+                    //--- 折柱 ---
+                        var begintime=request("begintime")
+                        var endtime=request("endtime")
+                        $.ajax({
+                            url: "/sign/selectone.do",
+                            type: "post",
+                            data: {"begintime": begintime, "endtime": endtime,page:0,limit:0},
+                            datatype: "json",
+                            success: function (res) {
+                                var day = [];
+                                var begin = [];
+                                var end = [];
+                                var times = res.data
+                                for (let i in times) {
+                                    var arr = times[i].createtime.split(" ")
+                                    var arr3 = arr[0].split("-")
+                                    var workday = arr3[1] + "-" + arr3[2]
+                                    if (day.indexOf(workday) == -1) {
+                                        day.push(workday)
+                                    }
+                                    /*塞时间*/
+                                    var time1 = arr[1].split(":")
+                                    if (parseInt(time1)<12) {
+                                        begin.push(time1[0])
+                                    } else {
+                                        end.push(time1[0])
+                                    }
+
+                                }
+                                day.sort()
+                                end.sort()
+                                begin.sort()
+
+                                var myChart = ec.init(document.getElementById('main'));
+                                myChart.setOption({
+                                    tooltip: {
+                                        trigger: 'axis'
+                                    },
+                                    legend: {
+                                        data: ['上班', '下班']
+                                    },
+                                    toolbox: {
+                                        show: true,
+                                        feature: {
+                                            mark: {show: true},
+                                            dataView: {show: true, readOnly: false},
+                                            magicType: {show: true, type: ['line', 'bar']},
+                                            restore: {show: true},
+                                            saveAsImage: {show: true}
+                                        }
+                                    },
+                                    calculable: true,
+                                    xAxis: [
+                                        {
+                                            type: 'category',
+                                            data: day
+                                        }
+                                    ],
+                                    yAxis: [
+                                        {
+                                            type: 'value',
+                                            splitArea: {show: true}
+                                        }
+                                    ],
+                                    series: [
+                                        {
+                                            name: '上班',
+                                            type: 'bar',
+                                            data: begin
+                                        },
+                                        {
+                                            name: '下班',
+                                            type: 'bar',
+                                            data: end
+                                        }
+                                    ]
+                                });
+
+                            }
+                        })
+                    })
+
+
+        </script>
+
+    </body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<title></title>
+	<meta charset="UTF-8">
+	<meta http-equiv="pragma" content="no-cache" />
+	<meta http-equiv="cache-control" content="no-cache" />
+	<meta http-equiv="expires" content="0" />    
+	<meta http-equiv="keywords" content="keyword1,keyword2,keyword3" />
+	<meta http-equiv="description" content="This is my page" />
+	<link href="/css/css.css" type="text/css" rel="stylesheet" />
+	<link rel="stylesheet" type="text/css" href="/js/ligerUI/skins/Aqua/css/ligerui-dialog.css"/>
+	<link href="/js/ligerUI/skins/ligerui-icons.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="/js/jquery-1.11.0.js"></script>
+    <script type="text/javascript" src="/js/jquery-migrate-1.2.1.js"></script>
+	<script src="/js/ligerUI/js/core/base.js" type="text/javascript"></script>
+	<script src="/js/ligerUI/js/plugins/ligerDrag.js" type="text/javascript"></script>
+	<script src="/js/ligerUI/js/plugins/ligerDialog.js" type="text/javascript"></script>
+	<link href="/css/pager.css" type="text/css" rel="stylesheet" />
+
+	<script type="text/javascript">
+
+	</script>
+</head>
+<body>
+	<!-- 导航 -->
+	<table width="100%" border="0" cellpadding="0" cellspacing="0">
+	  <tr><td height="10"></td></tr>
+	  <tr>
+	    <td width="15" height="32"><img src="/images/main_locleft.gif" width="15" height="32"></td>
+		<td class="main_locbg font2"><img src="/images/pointer.gif">&nbsp;&nbsp;&nbsp;当前位置：员工管理 &gt; 员工查询</td>
+		<td width="15" height="32"><img src="/images/main_locright.gif" width="15" height="32"></td>
+	  </tr>
+	</table>
+	
+	<table width="100%" height="90%" border="0" cellpadding="5" cellspacing="0" class="main_tabbor">
+	  <!-- 查询区  -->
+	  <tr valign="top">
+	    <td height="30">
+		  <table width="100%" border="0" cellpadding="0" cellspacing="10" class="main_tab">
+		    <tr>
+			  <td class="fftd">
+			  	<form>
+				    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+					  <tr>
+					    <td class="font3">
+					    	职位：
+							    <select name="job_id" style="width:143px;">
+					    			<option value="0">--请选择职位--</option>
+					    		</select>
+					    	姓名：<input type="text" name="name">
+					    	身份证号码：<input type="text" name="cardId" maxlength="18">
+					    </td>
+					  </tr>
+					  <tr>
+					    <td class="font3">
+					    	性别：
+					    		<select name="sex" style="width:143px;">
+					    			<option value="0">--请选择性别--</option>
+					    			<option value="1">男</option>
+					    			<option value="2">女</option>
+					    		</select>
+					    	手机：<input type="text" name="phone">
+					    	所属部门：<select  name="dept_id" style="width:100px;">
+								   <option value="0">--部门选择--</option>
+							</select>&nbsp;
+					    	<input type="button" value="搜索" id="sou"/>
+					    	<input id="delete" type="button" value="删除"/>
+					    </td>
+					  </tr>
+					</table>
+				</form>
+			  </td>
+			</tr>
+		  </table>
+		</td>
+	  </tr>
+	  
+	  <!-- 数据展示区 -->
+
+	</table>
+
+	<table class="layui-table" lay-data="{ height:330, url:'/empl/list.do', page:true, id:'idTest',}" lay-filter="demo">
+		<thead>
+			<tr>
+				<th lay-data="{type:'checkbox', fixed: 'left'}"></th>
+				<th lay-data="{field:'id', sort: true, fixed: true}">ID</th>
+				<th lay-data="{field:'name'}">姓名</th>
+				<th lay-data="{field:'sex', sort: true}">性别</th>
+				<th lay-data="{field:'tel', sort: true}">手机号码</th>
+				<th lay-data="{field:'email', sort: true}">邮箱</th>
+				<th lay-data="{field:'name', sort: true}">职位</th>
+				<th lay-data="{field:'education', sort: true}">学历</th>
+				<th lay-data="{field:'cardId', sort: true}">身份证号码</th>
+				<th lay-data="{field:'name', sort: true}">部门</th>
+				<th lay-data="{field:'address', sort: true}">联系地址</th>
+				<th lay-data="{field:'createDate', sort: true}">建档日期</th>
+
+			</tr>
+		</thead>
+	</table>
+	<!--	<div style="height:10px;"></div>-->
+	<script type="text/html" id="barDemo">
+		<a class="layui-btn layui-btn-xs" lay-event="edit"  >操作</a>
+		<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" id="del">删除</a>
+	</script>
+</body>
+
+	<script>
+		layui.use('table', function(){
+			var table = layui.table;
+			//监听表格复选框选择
+			table.on('checkbox(demo)', function(obj){
+				console.log(obj)
+			});
+			//监听工具条
+			table.on('tool(demo)', function(obj){
+				var data = obj.data;
+				if(obj.event === 'detail'){
+					layer.msg('ID：'+ data.id + ' 的查看操作');
+				} else if(obj.event === 'del'){
+					layer.confirm('真的删除行么', function(index){
+						obj.del();
+						layer.close(index);
+					});
+				} else if(obj.event === 'edit'){
+					location.href="/html/employee/showUpdateEmployee.html?id="+data.id+"&name="+data.name +"&remark="+data.remark     /*要修改*/
+				}
+			});
+			$("#sou").click(function () {
+				var name = $("#name").val();
+				alert(name)
+				table.reload('idTest', {
+					url:"/job/selectone.do",
+					where: { //设定异步数据接口的额外参数，任意设
+						name: name
+					}
+				})
+			});
+
+		})
+	</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+# Spring IOC注解
+
+## 1.Spring配置文件引入context约束
+
+```xml
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" 			          xsi:schemaLocation="http://www.springframework.org/schema/beans 	  				http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/context 									http://www.springframework.org/schema/context/spring-context.xsd">
+ 
+</beans>
+
+```
+
+## 2.Spring配置文件中开启注解扫描
+
+```xml
+<context:component-scan base-package="包"/>
+
+或使用<context:annotation-config/>标签来开启注解形式的依赖注入
+```
+
+## 3.IOC常用注解详解
+
+### 1.Bean标注注解
+
+- @Component ：组件通用注解，常用于 Model类
+- @Controller：web层
+- @Service：service层
+- @Repository：dao层
+- @Scope：
+  - singleton：默认的，Spring会采用单例模式创建这个对象。关闭工厂，所有对象都会消耗
+  - prototype：多例模式。关闭工厂，所有对象不会销毁。内部的垃圾回收机制会回收
+
+## 4.DI注解
+
+- @Resource
+  - 相当于@Autowired与@Qualifier一起使用，JDK提供的注解，Spring支持
+
+- @Autowired  
+  - 自动注入，required=true 的作用与 @Required 相同
+  - 默认根据参数类型自动装配，但必须只能有一个候选项（required = false 则可以允许有0个候选项）
+- @Qualifier （value = “限定标识符”）
+  - 可用于方法、字段、参数
+  - 配合@Autowired使用，可用于多个候选项的情况
+- @Value
+  - 用于注入基本类型
+
+# Mybatis 注解
+
+### 1.SqlMapConfig.xml配置文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+    <!--引入外部配置文件-->
+    <properties resource="jdbcConfig.properties"></properties>
+
+    <!--配置别名-->
+    <typeAliases>
+        <package name="com.llb.domain"></package>
+    </typeAliases>
+
+    <!--配置环境-->
+    <environments default="mysql">
+        <!--配置MySQl环境-->
+        <environment id="mysql">
+            <!--配置事务类型为JDBC-->
+            <transactionManager type="JDBC"></transactionManager>
+            <!--配置数据源-->
+            <!--POOLED创建连接池-->
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"></property>
+                <property name="url" value="${jdbc.url}"></property>
+                <property name="username" value="${jdbc.username}"></property>
+                <property name="password" value="${jdbc.password}"></property>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <!--指定带有注解的dao接口所在位置-->
+    <mappers>
+        <!-- 配置 dao 接口的位置，它有两种方式
+        第一种：使用 mapper 标签配置 class 属性
+        第二种：使用 package 标签，直接指定 mapper 接口所在的包
+        -->
+        <!--<mapper class="com.llb.dao.UserMapper"></mapper>-->
+        <package name="com.llb.dao"></package>
+    </mappers>
+
+</configuration>
+```
+
+### 2.注解的种类
+
+| 注解                                                         | 使用对象 | 相对应的 XML                                | 描述                                                         |
+| :----------------------------------------------------------- | :------- | :------------------------------------------ | :----------------------------------------------------------- |
+| `@CacheNamespace`                                            | `类`     | `<cache>`                                   | 为给定的命名空间（比如类）配置缓存。属性有：`implemetation`, `eviction`, `flushInterval`, `size`, `readWrite`, `blocking` 和`properties`。 |
+| `@Property`                                                  | N/A      | `<property>`                                | 指定参数值或占位值（placeholder）（能被 `mybatis-config.xml`内的配置属性覆盖）。属性有：`name`, `value`。（仅在MyBatis 3.4.2以上版本生效） |
+| `@CacheNamespaceRef`                                         | `类`     | `<cacheRef>`                                | 参照另外一个命名空间的缓存来使用。属性有：`value`, `name`。如果你使用了这个注解，你应设置 `value` 或者 `name` 属性的其中一个。`value` 属性用于指定 Java 类型而指定命名空间（命名空间名就是指定的 Java 类型的全限定名），`name` 属性（这个属性仅在MyBatis 3.4.2以上版本生效）直接指定了命名空间的名字。 |
+| `@ConstructorArgs`                                           | `方法`   | `<constructor>`                             | 收集一组结果传递给一个结果对象的构造方法。属性有：`value`，它是形式参数数组。 |
+| `@Arg`                                                       | N/A      | `<arg>``<idArg>`                            | 单参数构造方法，是 ConstructorArgs 集合的一部分。属性有：`id`, `column`, `javaType`, `jdbcType`, `typeHandler`, `select` 和 `resultMap`。id 属性是布尔值，来标识用于比较的属性，和`<idArg>` XML 元素相似。 |
+| `@TypeDiscriminator`                                         | `方法`   | `<discriminator>`                           | 一组实例值被用来决定结果映射的表现。属性有：`column`, `javaType`, `jdbcType`, `typeHandler` 和 `cases`。cases 属性是实例数组。 |
+| `@Case`                                                      | N/A      | `<case>`                                    | 单独实例的值和它对应的映射。属性有：`value`, `type`, `results`。results 属性是结果数组，因此这个注解和实际的 `ResultMap` 很相似，由下面的 `Results` 注解指定。 |
+| `@Results`                                                   | `方法`   | `<resultMap>`                               | 结果映射的列表，包含了一个特别结果列如何被映射到属性或字段的详情。属性有：`value`, `id`。value 属性是 `Result` 注解的数组。这个 id 的属性是结果映射的名称。 |
+| `@Result`                                                    | N/A      | `<result>` `<id>`                           | 在列和属性或字段之间的单独结果映射。属性有：`id`, `column`, `javaType`, `jdbcType`, `typeHandler`, `one`, `many`。id 属性是一个布尔值，来标识应该被用于比较（和在 XML 映射中的`<id>`相似）的属性。one 属性是单独的联系，和 `<association>` 相似，而 many 属性是对集合而言的，和`<collection>`相似。它们这样命名是为了避免名称冲突。 |
+| `@One`                                                       | N/A      | `<association>`                             | 复杂类型的单独属性值映射。属性有：`select`，已映射语句（也就是映射器方法）的全限定名，它可以加载合适类型的实例。`fetchType`会覆盖全局的配置参数 `lazyLoadingEnabled`。**注意**联合映射在注解 API中是不支持的。这是因为 Java 注解的限制,不允许循环引用。 |
+| `@Many`                                                      | N/A      | `<collection>`                              | 映射到复杂类型的集合属性。属性有：`select`，已映射语句（也就是映射器方法）的全限定名，它可以加载合适类型的实例的集合，`fetchType` 会覆盖全局的配置参数 `lazyLoadingEnabled`。**注意** 联合映射在注解 API中是不支持的。这是因为 Java 注解的限制，不允许循环引用 |
+| `@MapKey`                                                    | `方法`   |                                             | 这是一个用在返回值为 Map 的方法上的注解。它能够将存放对象的 List 转化为 key 值为对象的某一属性的 Map。属性有： `value`，填入的是对象的属性名，作为 Map 的 key 值。 |
+| `@Options`                                                   | `方法`   | 映射语句的属性                              | 这个注解提供访问大范围的交换和配置选项的入口，它们通常在映射语句上作为属性出现。`Options` 注解提供了通俗易懂的方式来访问它们，而不是让每条语句注解变复杂。属性有：`useCache=true`, `flushCache=FlushCachePolicy.DEFAULT`, `resultSetType=DEFAULT`, `statementType=PREPARED`, `fetchSize=-1`, `timeout=-1`, `useGeneratedKeys=false`, `keyProperty=""`, `keyColumn=""`, `resultSets=""`。值得一提的是， Java 注解无法指定 `null` 值。因此，一旦你使用了 `Options` 注解，你的语句就会被上述属性的默认值所影响。要注意避免默认值带来的预期以外的行为。  注意： `keyColumn` 属性只在某些数据库中有效（如 Oracle、PostgreSQL等）。请在插入语句一节查看更多关于 `keyColumn` 和 `keyProperty` 两者的有效值详情。 |
+| `@Insert` `@Update` `@Delete` `@Select`                      | `方法`   | `<insert>` `<update>` `<delete>` `<select>` | 这四个注解分别代表将会被执行的 SQL 语句。它们用字符串数组（或单个字符串）作为参数。如果传递的是字符串数组，字符串之间先会被填充一个空格再连接成单个完整的字符串。这有效避免了以 Java 代码构建 SQL 语句时的“丢失空格”的问题。然而，你也可以提前手动连接好字符串。属性有：`value`，填入的值是用来组成单个 SQL 语句的字符串数组。 |
+| `@InsertProvider` `@UpdateProvider` `@DeleteProvider` `@SelectProvider` | `方法`   | `<insert>` `<update>` `<delete>` `<select>` | 允许构建动态 SQL。这些备选的 SQL 注解允许你指定类名和返回在运行时执行的 SQL 语句的方法。（自从MyBatis 3.4.6开始，你可以用 `CharSequence` 代替 `String` 来返回类型返回值了。）当执行映射语句的时候，MyBatis 会实例化类并执行方法，类和方法就是填入了注解的值。你可以把已经传递给映射方法了的对象作为参数，"Mapper interface type" 和 "Mapper method" and "Database ID" 会经过 `ProviderContext` （仅在MyBatis 3.4.5及以上支持）作为参数值。（MyBatis 3.4及以上的版本，支持多参数传入） 属性有： `value`, `type`, `method`。 `value` and `type` 属性需填入类(The `type` attribute is alias for `value`, you must be specify either one)。 `method` 需填入该类定义了的方法名 (Since 3.5.1, you can omit `method` attribute, the MyBatis will resolve a target method via the `ProviderMethodResolver` interface. If not resolve by it, the MyBatis use the reserved fallback method that named `provideSql`)。 **注意** 接下来的小节将会讨论类，能帮助你更轻松地构建动态 SQL。 |
+| `@Param`                                                     | `参数`   | N/A                                         | 如果你的映射方法的形参有多个，这个注解使用在映射方法的参数上就能为它们取自定义名字。若不给出自定义名字，多参数（不包括 `RowBounds` 参数）则先以 "param" 作前缀，再加上它们的参数位置作为参数别名。例如 `#{param1}`, `#{param2}`，这个是默认值。如果注解是 `@Param("person")`，那么参数就会被命名为 `#{person}`。 |
+| `@SelectKey`                                                 | `方法`   | `<selectKey>`                               | 这个注解的功能与 `<selectKey>` 标签完全一致，用在已经被 `@Insert` 或 `@InsertProvider` 或 `@Update` 或 `@UpdateProvider` 注解了的方法上。若在未被上述四个注解的方法上作 `@SelectKey` 注解则视为无效。如果你指定了 `@SelectKey` 注解，那么 MyBatis 就会忽略掉由 `@Options` 注解所设置的生成主键或设置（configuration）属性。属性有：`statement` 填入将会被执行的 SQL 字符串数组，`keyProperty` 填入将会被更新的参数对象的属性的值，`before` 填入 `true` 或 `false` 以指明 SQL 语句应被在插入语句的之前还是之后执行。`resultType` 填入 `keyProperty` 的 Java 类型和用 `Statement`、 `PreparedStatement` 和 `CallableStatement` 中的 `STATEMENT`、 `PREPARED` 或 `CALLABLE` 中任一值填入 `statementType`。默认值是 `PREPARED`。 |
+| `@ResultMap`                                                 | `方法`   | N/A                                         | 这个注解给 `@Select` 或者 `@SelectProvider` 提供在 XML 映射中的 `<resultMap>` 的id。这使得注解的 select 可以复用那些定义在 XML 中的 ResultMap。如果同一 select 注解中还存在 `@Results` 或者 `@ConstructorArgs`，那么这两个注解将被此注解覆盖。 |
+| `@ResultType`                                                | `方法`   | N/A                                         | 此注解在使用了结果处理器的情况下使用。在这种情况下，返回类型为 void，所以 Mybatis 必须有一种方式决定对象的类型，用于构造每行数据。如果有 XML 的结果映射，请使用 `@ResultMap`注解。如果结果类型在 XML 的 `<select>` 节点中指定了，就不需要其他的注解了。其他情况下则使用此注解。比如，如果 @Select 注解在一个将使用结果处理器的方法上，那么返回类型必须是 void 并且这个注解（或者@ResultMap）必选。这个注解仅在方法返回类型是 void 的情况下生效。 |
+| `@Flush`                                                     | `方法`   | N/A                                         | 如果使用了这个注解，定义在 Mapper 接口中的方法能够调用 `SqlSession#flushStatements()` 方法。（Mybatis 3.3及以上） |
+
+### 3.常用注解
+
+- @Insert:实现新增
+- @Select：实现查询
+- @Update：实现更新
+- @Delete：实现删除
+- @Result：实现结果集封装
+  - 代表一个字段的映射关系
+  - column指定数据库字段的名称
+  - property指定实体类属性的名字
+  - jdbcType数据库字段类型
+  - id值为true表明主键，默认false
+- @Results：可以与@Result一起使用，实现多个结果集的封装
+  - 代替了<resultMap>标签
+  - 各属性的含义
+    - id为当前结果集声明唯一标识
+    - value值为结果集映射关系
+- @ResultMap：实现引用@Results定义的封装
+  - 代替了<id>标签和<result>标签
+- @One：实现一对一结果集的封装
+  - 代替了<assocation>标签，
+- @Many：实现一对多结果集的封装
+  - 代替了<assocation>标签，是多表查询的关键，在注解中用来指定子查询返回的单一对象
+- @SelectProvider：实现动态SQL映射
+- @CacheNamespace：实现注解的二级缓存使用
